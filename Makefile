@@ -29,12 +29,22 @@ export VERSION OS ARCH
 
 .DEFAULT_GOAL := test
 
-.PHONY: build test lint check-docker check-version check-platform check-release \
+.PHONY: build clean test lint check-docker check-version check-platform check-release \
 	release release-one check-archive check-release-assets \
 	release-linux-amd64 release-linux-arm64 release-darwin-arm64 release-windows-amd64
 
 $(DIR_OUT):
 	@mkdir -p "$(DIR_OUT)"
+
+clean:
+	@case "$(DIR_OUT_ABS)" in \
+		"$(DIR_ROOT)"/*) ;; \
+		*) echo 'DIR_OUT must be under the project root' >&2; exit 1 ;; \
+	esac
+	@if [ -e "$(DIR_OUT_ABS)" ] || [ -L "$(DIR_OUT_ABS)" ]; then \
+		find "$(DIR_OUT_ABS)" -type d -exec chmod u+w {} + && \
+		rm -rf -- "$(DIR_OUT_ABS)"; \
+	fi
 
 check-docker:
 	@command -v docker >/dev/null 2>&1 || { echo 'docker is required' >&2; exit 1; }

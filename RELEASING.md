@@ -17,6 +17,8 @@ Build and check one platform with `make release-one VERSION=v0.1.0 OS=windows AR
 
 Builds and tests run in Docker as your user, with caches under `_output/`. Tests enable CGO for the race detector; release builds disable CGO for cross compilation. Set `TFWRAPPER_LIVE_TEST=1` when running `make test` to include the optional live tests.
 
+Run `make clean` to remove all of `_output/`, including release files and read-only Go module caches. Cleaning does not require Docker or Go.
+
 ZIP archives and their `.sha256` files are written to `_output/release/`. Each archive contains the executable, `README.md`, and `CHANGELOG.md`.
 
 | Platform | Archive |
