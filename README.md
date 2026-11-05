@@ -4,10 +4,10 @@ Run Terraform with the version declared by the root module. tfwrapper chooses th
 
 ## Build
 
-Use the Go version declared in [go.mod](go.mod).
+Use Docker and GNU Make. The build image is pinned in [Makefile](Makefile). The executable is written to `_output/tfwrapper` (`_output/tfwrapper.exe` for Windows).
 
 ```sh
-go build -o bin/tfwrapper .
+make build
 ```
 
 Put `tfwrapper` on your PATH, then run it from a Terraform root module:
@@ -50,13 +50,17 @@ Terraform executables are cached and run from the operating system's user cache 
 
 ## Tests
 
+Run tests and lint in Docker:
+
 ```sh
-go test -race ./...
-go vet ./...
+make test
+make lint
 ```
 
 Optional live tests download an official Terraform release and run tests against it:
 
 ```sh
-TFWRAPPER_LIVE_TEST=1 go test ./... -run TestLive -count=1
+TFWRAPPER_LIVE_TEST=1 make test
 ```
+
+See [RELEASING.md](RELEASING.md) for platform builds, changelog entries, and tagged releases.
