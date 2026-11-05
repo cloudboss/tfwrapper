@@ -3,6 +3,7 @@ module github.com/cloudboss/tfwrapper
 go 1.27.3
 
 require (
+	github.com/cloudboss/cachedeps v0.3.0
 	github.com/hashicorp/go-version v1.9.0
 	github.com/hashicorp/hcl/v2 v2.25.0
 	github.com/stretchr/testify v1.11.1
