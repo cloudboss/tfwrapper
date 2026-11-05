@@ -1,0 +1,78 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: make check-release
+        env:
+          VERSION: ${{ github.ref_name }}
+
+  checks:
+    needs: check-release
+    uses: ./.github/workflows/common.yml
+
+  build:
+    needs: checks
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: arm64
+          - os: windows
+            arch: amd64
+    env:
+      VERSION: ${{ github.ref_name }}
+      OS: ${{ matrix.os }}
+      ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v5
+      - run: make release-one
+      - run: make check-archive
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tfwrapper-${{ matrix.os }}-${{ matrix.arch }}
+          path: _output/release/tfwrapper-${{ github.ref_name }}-${{ matrix.os }}-${{ matrix.arch }}.*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tfwrapper-*
+          path: artifacts
+          merge-multiple: true
+      - run: make check-release-assets DIR_RELEASE=artifacts
+      - uses: docker://antonyurchenko/git-release:v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_EMPTY_CHANGELOG: "false"
+        with:
+          args: |
+            artifacts/tfwrapper-${{ github.ref_name }}-*.zip
+            artifacts/tfwrapper-${{ github.ref_name }}-*.zip.sha256
